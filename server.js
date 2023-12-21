@@ -16,7 +16,7 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 
-require('./Passport')
+require('./Passport')(passport)
 
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }))
@@ -31,13 +31,10 @@ app.get('/auth/google/callback',
 app.get('/login', (req, res) => {
   res.sendFile(__dirname + '/login.html')
 })
-let access_token;
 app.get('/success', (req, res) => {
-  console.log(req.user.accessToken);
-  access_token = req.user.accessToken;
+  // console.log(req.user.accessToken);
   res.sendFile(__dirname + '/success.html')
 })
-
 
 app.get('/autoreply', async (req, res) => {
 
@@ -45,19 +42,21 @@ app.get('/autoreply', async (req, res) => {
     return res.status(401).send('user not authenticated');
   }
 
-  const oauth2Client = new google.auth.OAuth2()
-  oauth2Client.setCredentials(req.user.accessToken);
+  const oauth2Client = new OAuth2();
+  oauth2Client.setCredentials({
+    access_token: req.user.accessToken,
+    refresh_token: req.user.refreshToken
+  });
   const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-  gmail ? async function getUnrepliedMessages(gmail) {
+  async function getUnrepliedMessages(gmail) {
     const res = await gmail.users.messages.list({
       userId: '${req.user.email}',
       q: '-in:chat -from:me -has:userlabels'
     });
 
     return res.data.messages || [];
-  }:null
-
+  }
 
   if (gmail) {
     const messages = await getUnrepliedMessages(gmail);
