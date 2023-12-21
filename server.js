@@ -18,6 +18,7 @@ app.use(passport.initialize())
 app.use(passport.session())
 
 let accesstoken
+let uemail
 passport.use(
   new GoogleStrategy(
     {
@@ -29,7 +30,7 @@ passport.use(
       profile.accessToken = accessToken;
       accesstoken = profile.accessToken;
       // profile.refreshToken = refreshToken; 
-      profile.email = profile.emails[0].value;
+      uemail = profile.emails[0].value;
       profile.id = profile.id;
       // console.log(accessToken);
       console.log('User authenticated successfully');
@@ -46,15 +47,13 @@ passport.deserializeUser((userObj, done) => {
   done(null, userObj)
 });
 
-// require('./Passport')(passport)
-
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }))
 
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   function (req, res) {
-    console.log('ye rha -> ', accesstoken)
+    console.log('ye rha -> ', accesstoken, uemail)
     res.redirect('/autoreply')
     // res.redirect('/success')
   })
@@ -81,7 +80,7 @@ app.get('/autoreply', async (req, res) => {
 
   async function getUnrepliedMessages(gmail) {
     const res = await gmail.users.messages.list({
-      userId: '${req.user.email}',
+      userId: `${uemail}`,
       q: '-in:chat -from:me -has:userlabels'
     });
 
@@ -105,7 +104,7 @@ app.get('/autoreply', async (req, res) => {
 
 async function sendReply(gmail, message) {
   const res = await gmail.users.messages.get({
-    userId: 'me',
+    userId: `${uemail}`,
     id: message.id,
     format: 'metadata',
     metadataHeaders: ['Subject', 'From'],
@@ -118,7 +117,7 @@ async function sendReply(gmail, message) {
   const replyBody = `Hey, I am out of office. Call you later`;
 
   const rawMessage = [
-    `From: me`,
+    `From: ${uemail}`,
     `To: ${replyTo}`,
     `Subject: ${replySubject}`,
     `In-Reply-To: ${message.id}`,
@@ -130,7 +129,7 @@ async function sendReply(gmail, message) {
   const encodedMessage = Buffer.from(rawMessage).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
   await gmail.users.messages.send({
-    userId: 'me',
+    userId: `${uemail}`,
     requestBody: {
       raw: encodedMessage,
     },
