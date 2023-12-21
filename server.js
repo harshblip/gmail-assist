@@ -27,12 +27,9 @@ passport.use(
       callbackURL: "http://localhost:3000/auth/google/callback"
     },
     function (accessToken, refreshToken, profile, done) {
-      profile.accessToken = accessToken;
-      accesstoken = profile.accessToken;
-      // profile.refreshToken = refreshToken; 
+      accesstoken = accessToken;
       uemail = profile.emails[0].value;
       profile.id = profile.id;
-      // console.log(accessToken);
       console.log('User authenticated successfully');
       return done(null, profile);
     }
@@ -55,14 +52,12 @@ app.get('/auth/google/callback',
   function (req, res) {
     console.log('ye rha -> ', accesstoken, uemail)
     res.redirect('/autoreply')
-    // res.redirect('/success')
   })
 
 app.get('/login', (req, res) => {
   res.sendFile(__dirname + '/login.html')
 })
 app.get('/success', (req, res) => {
-  // console.log(req.user.accessToken);
   res.sendFile(__dirname + '/success.html')
 })
 
