@@ -1,0 +1,21 @@
+{
+  "name": "gmail-nodejs-quickstart",
+  "version": "1.0.0",
+  "description": "A simple Node.js application that authenticates with Google OAuth 2.0 and interacts with the Gmail API.",
+  "private": true,
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "googleapis": "^129.0.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "Apache-2.0"
+}
