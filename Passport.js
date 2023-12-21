@@ -9,8 +9,8 @@ module.exports = function (passport) {
         callbackURL: "http://localhost:3000/auth/google/callback"
       },
       function (accessToken, refreshToken, profile, done) {
-        profile.accessToken = accessToken;
-        profile.refreshToken = refreshToken; 
+        // profile.accessToken = accessToken;
+        // profile.refreshToken = refreshToken; 
         profile.email = profile.emails[0].value;
         console.log(accessToken);
         console.log('User authenticated successfully');

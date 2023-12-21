@@ -6,6 +6,7 @@ require('dotenv').config();
 const app = express()
 const gmail = google.gmail('v1')
 const OAuth2 = google.auth.OAuth2;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 app.use(session({
   secret: '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',
@@ -16,7 +17,36 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 
-require('./Passport')(passport)
+let accesstoken
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "http://localhost:3000/auth/google/callback"
+    },
+    function (accessToken, refreshToken, profile, done) {
+      profile.accessToken = accessToken;
+      accesstoken = profile.accessToken;
+      // profile.refreshToken = refreshToken; 
+      profile.email = profile.emails[0].value;
+      profile.id = profile.id;
+      // console.log(accessToken);
+      console.log('User authenticated successfully');
+      return done(null, profile);
+    }
+  )
+);
+console.log('ye rha -> ', accesstoken)
+passport.serializeUser((userObj, done) => {
+  done(null, userObj)
+});
+
+passport.deserializeUser((userObj, done) => {
+  done(null, userObj)
+});
+
+// require('./Passport')(passport)
 
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }))
@@ -24,6 +54,7 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   function (req, res) {
+    console.log('ye rha -> ', accesstoken)
     res.redirect('/autoreply')
     // res.redirect('/success')
   })
@@ -44,8 +75,7 @@ app.get('/autoreply', async (req, res) => {
 
   const oauth2Client = new OAuth2();
   oauth2Client.setCredentials({
-    access_token: req.user.accessToken,
-    refresh_token: req.user.refreshToken
+    access_token: accesstoken,
   });
   const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
