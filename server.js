@@ -24,7 +24,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/callback"
+      callbackURL: "http://localhost:3000/auth/google/callback",
+      refreshToken: process.env.REFRESH_TOKEN,
     },
     function (accessToken, refreshToken, profile, done) {
       accesstoken = accessToken;
@@ -70,13 +71,14 @@ app.get('/autoreply', async (req, res) => {
   const oauth2Client = new OAuth2();
   oauth2Client.setCredentials({
     access_token: accesstoken,
+    refresh_token: process.env.REFRESH_TOKEN
   });
   const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
   async function getUnrepliedMessages(gmail) {
     const res = await gmail.users.messages.list({
       userId: `${uemail}`,
-      q: '-in:chat -from:me -has:userlabels'
+      q: `-in:chat -from:${uemail} -has:userlabels`
     });
 
     return res.data.messages || [];
